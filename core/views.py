@@ -100,5 +100,19 @@ class BotFactoryViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         web_url = f"http://{request.get_host()}"
-        bot_factory_task.delay(web_url, 1, 10, 10)
+
+        try:
+            number_of_users = int(request.data['number_of_users'])
+            max_posts_per_user = int(request.data['max_posts_per_user'])
+            max_likes_per_user = int(request.data['max_likes_per_user'])
+        except:
+            return Response('No date were provided', status=HTTP_400_BAD_REQUEST)
+
+        bot_factory_task.delay(web_url, number_of_users, max_posts_per_user, max_likes_per_user)
+
+        serializer = BotFactorySerializer(data=dict(number_of_users=number_of_users,
+                                                    max_posts=max_posts_per_user,
+                                                    max_likes=max_likes_per_user))
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response('ok')
