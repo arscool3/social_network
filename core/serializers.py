@@ -1,10 +1,10 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 
-from core.models import MyUser
+from core.models import MyUser, Post, Like
 
 
-class UserSerializer(ModelSerializer):
+class MyUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
         fields = ('id', 'username', 'email', 'password', 'interest')
@@ -24,3 +24,20 @@ class UserSerializer(ModelSerializer):
         user.save()
 
         return user
+
+
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = '__all__'
+
+
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = '__all__'
+
+
+class AnalyticSerializer(serializers.Serializer):
+    day = serializers.DateTimeField()
+    count = serializers.IntegerField()

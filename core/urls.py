@@ -5,16 +5,17 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from core.views import UserRegisterView
+from core.views import MyUserRegisterView, PostViewSet, LikeViewSet, MyUserViewSet
 
 
 router = DefaultRouter()
-# router.register(r'users', UserList)
+router.register(r'posts', PostViewSet)
+router.register(r'likes', LikeViewSet)
+router.register(r'users', MyUserViewSet)
 
 
 urlpatterns = [
-    path('register/', UserRegisterView.as_view()),
+    path('register/', MyUserRegisterView.as_view()),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
 ] + router.urls
