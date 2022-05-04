@@ -2,8 +2,8 @@ import datetime
 
 from django.db.models import functions, Count
 from rest_framework import viewsets
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, ListAPIView
-from rest_framework.mixins import RetrieveModelMixin
+from rest_framework.generics import CreateAPIView
+from rest_framework.mixins import CreateModelMixin
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -83,3 +83,8 @@ class MyUserViewSet(viewsets.ModelViewSet):
                                                         last_login=user.last_login))
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data)
+
+
+class BotView(CreateModelMixin):
+    def create(self, request, *args, **kwargs):
+        pass

@@ -7,4 +7,4 @@ class MyUserPermission(permissions.BasePermission):
 
         if view.action in ['list', 'activity', 'retrieve']:
             return request.user.is_superuser
-        return
+        return False
