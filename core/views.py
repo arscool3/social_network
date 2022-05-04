@@ -5,6 +5,7 @@ from rest_framework import viewsets
 from rest_framework.generics import CreateAPIView
 from rest_framework.decorators import action
 from rest_framework.request import Request
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
@@ -32,6 +33,7 @@ class MyUserRegisterView(CreateAPIView):
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    pagination_class = PageNumberPagination
     permission_classes = [IsAuthenticated, ]
 
     @action(detail=True, methods=['post'])
@@ -51,6 +53,7 @@ class PostViewSet(viewsets.ModelViewSet):
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
+    pagination_class = PageNumberPagination
     permission_classes = [IsAuthenticated, ]
 
     @action(detail=False, methods=['get'])
@@ -78,6 +81,7 @@ class LikeViewSet(viewsets.ModelViewSet):
 class MyUserViewSet(viewsets.ModelViewSet):
     queryset = MyUser.objects.all()
     serializer_class = MyUserSerializer
+    pagination_class = PageNumberPagination
     permission_classes = [MyUserPermission, ]
 
     @action(detail=True, methods=['get'])
@@ -98,6 +102,7 @@ class MyUserViewSet(viewsets.ModelViewSet):
 class BotFactoryViewSet(viewsets.ModelViewSet):
     queryset = BotFactory.objects.all()
     serializer_class = BotFactorySerializer
+    pagination_class = PageNumberPagination
     permission_classes = [IsAdminUser, ]
 
     def create(self, request, *args, **kwargs):

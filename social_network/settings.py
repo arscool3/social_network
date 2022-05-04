@@ -126,7 +126,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10
 }
 
 SIMPLE_JWT = {
@@ -139,3 +141,6 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BROKER_URL = "redis://0.0.0.0:6379/0"
 CELERY_RESULT_BACKEND = "redis://0.0.0.0:6379/0"
+
+
+
