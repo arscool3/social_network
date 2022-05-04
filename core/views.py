@@ -9,6 +9,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 
+from celery.result import AsyncResult
+
 from core.models import Post, MyUser, Like, BotFactory
 from core.serializers import (
     MyUserSerializer,
@@ -108,11 +110,18 @@ class BotFactoryViewSet(viewsets.ModelViewSet):
         except:
             return Response('No date were provided', status=HTTP_400_BAD_REQUEST)
 
-        bot_factory_task.delay(web_url, number_of_users, max_posts_per_user, max_likes_per_user)
+        task = bot_factory_task.delay(web_url, number_of_users, max_posts_per_user, max_likes_per_user)
 
         serializer = BotFactorySerializer(data=dict(number_of_users=number_of_users,
                                                     max_posts=max_posts_per_user,
                                                     max_likes=max_likes_per_user))
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response('ok')
+        return Response(task.id)
+
+    @action(detail=False, methods=['get'])
+    def status(self, request: Request):
+        task_id = request.query_params.get('task_id')
+        if task_id:
+            return Response({'status': f'{AsyncResult(task_id).status}'})
+        return Response('No task id is provided')
