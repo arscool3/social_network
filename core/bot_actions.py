@@ -9,8 +9,6 @@ from core.models import Post
 from core.constants import TASK_MAX_ITERATION
 
 
-
-
 def get_favourite_bot_post_ids(bot_interest: str) -> t.List:
     favourite_post_ids = []
     favourite_ids_queryset = Post.objects.filter(topic=bot_interest).values('id')
@@ -36,7 +34,6 @@ def bot_create_posts(web_url: str, tokens: t.Dict, bot_interest: str, max_posts:
         posts_url = web_url + "/api/posts/"
         text = get_random_str(50)
         headers = {"Authorization": f"Bearer {tokens['access']}"}
-        print(headers)
         try:
             r.post(posts_url, headers=headers, data={'topic': bot_interest, 'text': text})
         except:

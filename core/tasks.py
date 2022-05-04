@@ -5,7 +5,6 @@ from core.constants import BOT_INTEREST_LIST
 from core.bot_actions import bot_authorization, bot_add_likes, bot_create_posts, get_favourite_bot_post_ids
 
 
-
 @app.task()
 def bot_factory_task(web_url: str, number_of_users: int, max_posts: int, max_likes: int):
     for _ in range(number_of_users):
