@@ -7,11 +7,14 @@ from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 
 from core.models import Post, MyUser, Like
-from core.serializers import MyUserSerializer, PostSerializer, LikeSerializer, AnalyticSerializer
+from core.serializers import (
+    MyUserSerializer, PostSerializer, LikeSerializer, AnalyticSerializer, MyUserActivitySerializer
+)
+from core.permissions import MyUserPermission
 
 
 class MyUserRegisterView(CreateAPIView):
@@ -26,7 +29,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def like(self, request: Request, pk: int):
-        serializer = LikeSerializer(data={'my_user': request.user.id, 'post': pk})
+        serializer = LikeSerializer(data=dict(my_user=request.user.id, post=pk))
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -67,11 +70,16 @@ class LikeViewSet(viewsets.ModelViewSet):
 class MyUserViewSet(viewsets.ModelViewSet):
     queryset = MyUser.objects.all()
     serializer_class = MyUserSerializer
-    permission_classes = [IsAdminUser, ]
+    permission_classes = [MyUserPermission, ]
 
     @action(detail=True, methods=['get'])
     def activity(self, request: Request, pk: int):
-        pass
-
-
-
+        try:
+            user = MyUser.objects.filter(id=pk)[0]
+        except:
+            return Response('No users with given parameters', status=HTTP_400_BAD_REQUEST)
+        serializer = MyUserActivitySerializer(data=dict(username=user.username,
+                                                        last_request=user.last_request,
+                                                        last_login=user.last_login))
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data)
