@@ -1,9 +1,7 @@
-import datetime
-
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 
-from core.models import MyUser, Post, Like
+from core.models import MyUser, Post, Like, BotFactory
 
 
 class MyUserSerializer(serializers.ModelSerializer):
@@ -54,6 +52,12 @@ class LikeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class BotFactorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BotFactory
+        fields = '__all__'
+
+
 class AnalyticSerializer(serializers.Serializer):
     day = serializers.DateTimeField()
     count = serializers.IntegerField()
@@ -63,3 +67,4 @@ class MyUserActivitySerializer(serializers.Serializer):
     username = serializers.CharField()
     last_request = serializers.DateTimeField()
     last_login = serializers.DateTimeField()
+

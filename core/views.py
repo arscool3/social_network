@@ -3,18 +3,23 @@ import datetime
 from django.db.models import functions, Count
 from rest_framework import viewsets
 from rest_framework.generics import CreateAPIView
-from rest_framework.mixins import CreateModelMixin
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 
-from core.models import Post, MyUser, Like
+from core.models import Post, MyUser, Like, BotFactory
 from core.serializers import (
-    MyUserSerializer, PostSerializer, LikeSerializer, AnalyticSerializer, MyUserActivitySerializer
+    MyUserSerializer,
+    PostSerializer,
+    LikeSerializer,
+    AnalyticSerializer,
+    MyUserActivitySerializer,
+    BotFactorySerializer,
 )
 from core.permissions import MyUserPermission
+from core.tasks import bot_factory_task
 
 
 class MyUserRegisterView(CreateAPIView):
@@ -48,6 +53,7 @@ class LikeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def analytics(self, request: Request):
+
         try:
             date_from = request.query_params['date_from']
             date_to = request.query_params['date_to']
@@ -74,10 +80,12 @@ class MyUserViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def activity(self, request: Request, pk: int):
+
         try:
             user = MyUser.objects.filter(id=pk)[0]
         except:
             return Response('No users with given parameters', status=HTTP_400_BAD_REQUEST)
+
         serializer = MyUserActivitySerializer(data=dict(username=user.username,
                                                         last_request=user.last_request,
                                                         last_login=user.last_login))
@@ -85,6 +93,12 @@ class MyUserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class BotView(CreateModelMixin):
+class BotFactoryViewSet(viewsets.ModelViewSet):
+    queryset = BotFactory.objects.all()
+    serializer_class = BotFactorySerializer
+    permission_classes = [IsAdminUser, ]
+
     def create(self, request, *args, **kwargs):
-        pass
+        web_url = f"http://{request.get_host()}"
+        bot_factory_task.delay(web_url, 1, 10, 10)
+        return Response('ok')
