@@ -1,15 +1,18 @@
 from rest_framework import serializers
 
-from core.models import MyUser, Post, Like, BotFactory
+from core.models import MyUser, Post, Like
 
 
 class MyUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
-        fields = ('id', 'username', 'email', 'password', 'interest')
+        fields = ('id', 'username', 'email', 'password')
         extra_kwargs = {
             'password': {'write_only': True}
         }
+
+    def create(self, validated_data):
+        return MyUser.objects.create_user(**validated_data)
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -25,12 +28,6 @@ class PostSerializer(serializers.ModelSerializer):
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = '__all__'
-
-
-class BotFactorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BotFactory
         fields = '__all__'
 
 

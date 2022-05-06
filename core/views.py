@@ -7,22 +7,18 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 
-from celery.result import AsyncResult
-
-from core.models import Post, MyUser, Like, BotFactory
+from core.models import Post, MyUser, Like
 from core.serializers import (
     MyUserSerializer,
     PostSerializer,
     LikeSerializer,
     AnalyticSerializer,
     MyUserActivitySerializer,
-    BotFactorySerializer,
 )
 from core.permissions import MyUserPermission
-from core.tasks import bot_factory_task
 
 
 class MyUserRegisterView(CreateAPIView):
@@ -84,45 +80,12 @@ class MyUserViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def activity(self, request: Request, pk: int):
-        user = MyUser.objects.filter(id=pk)
-        if len(user) == 0:
+        users = MyUser.objects.filter(id=pk)
+        if len(users) == 0:
             return Response('No users with given parameters', status=HTTP_400_BAD_REQUEST)
-
+        user = users[0]
         serializer = MyUserActivitySerializer(data=dict(username=user.username,
                                                         last_request=user.last_request,
                                                         last_login=user.last_login))
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data)
-
-
-class BotFactoryViewSet(viewsets.ModelViewSet):
-    queryset = BotFactory.objects.all()
-    serializer_class = BotFactorySerializer
-    pagination_class = PageNumberPagination
-    permission_classes = [IsAdminUser, ]
-
-    def create(self, request, *args, **kwargs):
-        web_url = f"http://{request.get_host()}"
-
-        try:
-            number_of_users = int(request.data['number_of_users'])
-            max_posts_per_user = int(request.data['max_posts_per_user'])
-            max_likes_per_user = int(request.data['max_likes_per_user'])
-        except:
-            return Response('No date were provided', status=HTTP_400_BAD_REQUEST)
-
-        task = bot_factory_task.delay(web_url, number_of_users, max_posts_per_user, max_likes_per_user)
-
-        serializer = BotFactorySerializer(data=dict(number_of_users=number_of_users,
-                                                    max_posts=max_posts_per_user,
-                                                    max_likes=max_likes_per_user))
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(task.id)
-
-    @action(detail=False, methods=['get'])
-    def status(self, request: Request):
-        task_id = request.query_params.get('task_id')
-        if task_id:
-            return Response({'status': f'{AsyncResult(task_id).status}'})
-        return Response('No task id is provided')
