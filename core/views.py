@@ -58,11 +58,9 @@ class LikeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def analytics(self, request: Request):
-
-        try:
-            date_from = request.query_params['date_from']
-            date_to = request.query_params['date_to']
-        except:
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+        if date_from is None or date_to is None:
             return Response('No date were provided', status=HTTP_400_BAD_REQUEST)
 
         date_from = datetime.datetime.strptime(date_from, '%Y-%m-%d')
@@ -86,10 +84,8 @@ class MyUserViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def activity(self, request: Request, pk: int):
-
-        try:
-            user = MyUser.objects.filter(id=pk)[0]
-        except:
+        user = MyUser.objects.filter(id=pk)
+        if len(user) == 0:
             return Response('No users with given parameters', status=HTTP_400_BAD_REQUEST)
 
         serializer = MyUserActivitySerializer(data=dict(username=user.username,
